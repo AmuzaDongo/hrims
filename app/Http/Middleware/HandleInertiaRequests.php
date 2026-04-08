@@ -43,5 +43,21 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
         ];
+
+        return array_merge(parent::share($request), [
+            'auth' => [
+                'user' => $request->user() ? $request->user()->load('roles.permissions') : null,
+            ],
+
+            // Share permissions for easy checking in React
+            'permissions' => $request->user() 
+                ? $request->user()->getAllPermissions()->pluck('name')
+                : [],
+
+            // Optional: Share roles too
+            'roles' => $request->user() 
+                ? $request->user()->roles->pluck('name')
+                : [],
+        ]);
     }
 }

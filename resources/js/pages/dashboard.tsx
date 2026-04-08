@@ -33,6 +33,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { usePermissions } from '@/hooks/usePermissions';
 import AppLayout from '@/layouts/app-layout';
 import { dashboard } from '@/routes';
 import type { BreadcrumbItem } from '@/types';
@@ -75,6 +76,7 @@ export default function Dashboard({
   }, 
   recentActivities = [] 
 }: DashboardProps) {
+  const { hasPermission, hasRole } = usePermissions();
   const { auth } = usePage().props as unknown as { auth?: { user?: { name: string; role: string } } };
   const user = auth?.user || { name: 'Guest', role: 'viewer' }; // fallback
 
@@ -141,6 +143,14 @@ export default function Dashboard({
             <p className="text-muted-foreground text-sm">
               Overview of inventory, assets, and key activities
             </p>
+
+            <div>
+            {hasRole('admin') && <h1>Admin Dashboard</h1>}
+
+            {hasPermission('posts.create') && (
+                <button>Create New Post</button>
+            )}
+        </div>
           </div>
           <div className="flex items-center gap-3">
             <Badge variant="outline" className="capitalize">

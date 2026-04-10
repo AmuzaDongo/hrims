@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { LayoutDashboard, Users, Building2, Package, Calendar, Wallet } from 'lucide-react';
+import { LayoutDashboard, Users, Building2, Package, Calendar, Wallet, Flag, ScrollText, Library, School, Train } from 'lucide-react';
 import { NavFooter } from '@/components/nav-footer';
 import { NavMain } from '@/components/nav-main';
 import { NavUser } from '@/components/nav-user';
@@ -46,7 +46,31 @@ const mainNavItems: NavItem[] = [
         href: positions.index(),
         icon: Building2,
     },
-    
+    {
+        title: 'Assessment Categories',
+        href: positions.index(),
+        icon: Train,
+    },
+    {
+        title: 'Reports',
+        href: positions.index(),
+        icon: Flag,
+    },
+    {
+        title: 'Scripts',
+        href: positions.index(),
+        icon: ScrollText,
+    },
+    {
+        title: 'Libraries',
+        href: positions.index(),
+        icon: Library,
+    },
+    {
+        title: 'Checking Rooms',
+        href: positions.index(),
+        icon: School,
+    },
 ];
 
 const footerNavItems: NavItem[] = [

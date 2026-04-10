@@ -7,6 +7,7 @@ use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\EmployeeProfileController;
 use App\Http\Controllers\ActivityParticipantController;
+use App\Http\Controllers\RolePermissionController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -32,6 +33,23 @@ Route::middleware(['auth', 'verified'])->group(function () {
             'create', 'store', 'show', 'edit', 'update', 'destroy'
         ]);
     });
+
+    Route::get('/roles-permissions', [RolePermissionController::class, 'index'])
+         ->name('roles-permissions.index');
+
+    // Role Assignment per Center
+    Route::post('/assign-role', [RolePermissionController::class, 'assignRole'])
+         ->name('assign-role');
+
+    Route::delete('/remove-role', [RolePermissionController::class, 'removeRole'])
+         ->name('remove-role');
+
+    // Permission Management (Global)
+    Route::post('/assign-permission', [RolePermissionController::class, 'assignPermissionToRole'])
+         ->name('assign-permission');
+
+    Route::delete('/revoke-permission', [RolePermissionController::class, 'revokePermissionFromRole'])
+         ->name('revoke-permission');
 });
 
 Route::get('dashboard', function () {

@@ -1,5 +1,6 @@
 <?php
 
+namespace App\Models\HR;
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\SoftDeletes;

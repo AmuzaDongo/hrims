@@ -1,5 +1,6 @@
 <?php
 
+namespace App\Models\HR\MarkingCenter;
 namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -39,12 +40,12 @@ class User extends Authenticatable
 
     public function marking_centers()
     {
-        return $this->belongsToMany(MarkingCenter::class)
+        return $this->belongsToMany(\App\Models\HR\MarkingCenter::class)
                     ->withPivot('role')
                     ->withTimestamps();
     }
 
-    public function hasCenterRole(string $centerId, string $role): bool
+    public function hasMarkingCenterRole(string $centerId, string $role): bool
     {
         return $this->marking_centers()
                     ->where('marking_centers.id', $centerId)

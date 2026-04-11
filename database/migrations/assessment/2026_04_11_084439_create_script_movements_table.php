@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('script_movements', function (Blueprint $table) {
-            $table->id();
+            $table->uuid('id')->primary();
             $table->enum('type', ['single', 'batch']);
             $table->foreignId('script_id')->nullable()->constrained()->cascadeOnDelete();
             $table->foreignId('batch_id')->nullable()->constrained('script_batches')->cascadeOnDelete();
@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('to_location');
             $table->string('action');
             $table->enum('status', ['pending', 'in_progress', 'completed'])->default('pending');
-            $table->foreignId('handled_by')->constrained('users');
+            $table->foreignUuid('handled_by')->constrained()->cascadeOnDelete();
             $table->timestamp('created_at')->useCurrent();
         });
     }

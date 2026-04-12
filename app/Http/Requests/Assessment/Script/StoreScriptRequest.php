@@ -16,6 +16,7 @@ class StoreScriptRequest extends FormRequest
         return [
             'paper_id' => 'required|uuid|exists:papers,id',
             'center_origin' => 'required|string|max:255',
+            'barcode' => 'nullable|string|max:255',
             'status' => 'required|string|in:pending,processing,completed',
             'current_location' => 'required|string|max:255'
         ];

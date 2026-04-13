@@ -26,7 +26,7 @@ class PaperController extends Controller
 
         $papers = $query
             ->orderBy('created_at', 'desc') 
-            ->paginate($request->get('per_page', 15))
+            ->paginate($request->get('per_page', 10))
             ->withQueryString();
 
         return Inertia::render('Assessment/Papers/Index', [

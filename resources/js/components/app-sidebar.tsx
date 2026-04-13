@@ -18,6 +18,7 @@ import assessmentCategories from '@/routes/assessment-categories';
 import departments from '@/routes/departments';
 import markingCenters from '@/routes/marking-centers';
 import papers from '@/routes/papers';
+import scripts from '@/routes/scripts';
 import type { NavItem } from '@/types';
 import employees from '@/wayfinder/routes/employees';
 import positions from '@/wayfinder/routes/positions';
@@ -71,7 +72,7 @@ const mainNavItems: NavItem[] = [
     },
     {
         title: 'Scripts',
-        href: positions.index(),
+        href: scripts.index(),
         icon: ScrollText,
     },
     {

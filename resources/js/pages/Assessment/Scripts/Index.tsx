@@ -4,81 +4,91 @@ import { Head, router } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useState } from "react";
 import { toast } from 'sonner';
-import { DepartmentForm } from "@/components/departments/department-form";
-import DepartmentShowModal from '@/components/departments/DepartmentShowModal';
+import { ScriptForm } from '@/components/scripts/Script-form';
+import ScriptShowModal from '@/components/scripts/ScriptShowModal';
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import { DataTable } from "@/components/ui/data-table";
 import AppLayout from "@/layouts/app-layout";
-import { destroy } from '@/wayfinder/routes/departments';
+import { dashboard } from '@/routes';
+import scripts, { destroy } from '@/routes/scripts';
+import type { BreadcrumbItem } from "@/types";
 import { columns } from './columns';
 
-interface Department {
+interface Script {
   id: string;
-  name: string;
-  code: string; // keep null here
-  description: string | null;
-  parent?: { id: string; name: string };
-  head?: { id: string; first_name: string; last_name: string };
-  is_active: boolean;
+  papers: {
+    id: string;
+    name: string;
+    code: string;
+  }[];
+  center_origin: string;
+  current_location: string;
+  status: string;
 }
 
-interface PaginatedDepartments {
-  data: Department[];
+interface Paginatedscripts {
+  data: Script[];
   links: { url: string | null; label: string; active: boolean }[];
   total: number;
   per_page: number;
 }
-
+  
 interface Props {
-  departments: PaginatedDepartments;
-  parents: { id: string; name: string }[];
-  employees: { id: string; first_name: string; last_name: string }[];
-  filters?: { 
-    search?: string;
-    per_page?: number; 
-    [key: string]: string | number | undefined;
-  };
+  scripts: Paginatedscripts;
+  papers: {
+    id: string;
+    name: string;
+    code: string;
+  }[];
+  filters?: Record<string, string | number | undefined>;
 }
 
-export default function DepartmentsIndex({ departments, parents, employees, filters }: Props) {
+const breadcrumbs = (): BreadcrumbItem[] => [
+  { title: 'Dashboard', href: dashboard().url || "/" },
+  { title: 'Scripts', href: scripts.index().url || "/scripts" },
+];
+
+export default function ActivitiesIndex({ scripts, papers, filters }: Props) {
   const [modalOpen, setModalOpen] = useState(false);
   const [showModalOpen, setShowModalOpen] = useState(false);
-  const [selectedDepartment, setSelectedDepartment] = useState<Department | null>(null);
-  const [editingDept, setEditingDept] = useState<Department | null>(null);
+  const [selectedScript, setSelectedScript] = useState<Script | null>(null);
+  const [editingScript, setEditingScript] = useState<Script | null>(null);
+
   const { confirm } = useConfirm();
 
   const openAddModal = () => {
-    setEditingDept(null);
+    setEditingScript(null);
     setModalOpen(true);
   };
 
-  const handleView = (department: Department) => {
-    setSelectedDepartment(department);
+  const handleView = (script: Script) => {
+    setSelectedScript(script);
     setShowModalOpen(true);
   };
 
-  const openEditModal = (dept: Department) => {
-    setEditingDept(dept);
+  const openEditModal = (script: Script) => {
+    setEditingScript(script);
     setModalOpen(true);
   };
 
-  const handleDelete = (deleteId: string) => {
+  const handleDelete = (id: string) => {
     confirm({
-      title: "Delete Department",
-      description: "This action cannot be undone.",
+      title: "Delete Script",
+      description: "Are you sure you want to delete this script? This action cannot be undone.",
       onConfirm: async () => {
         const promise = new Promise((resolve, reject) => {
-          router.delete(destroy(deleteId), {
+          router.delete(destroy(id), {
+            preserveScroll: true,
             onSuccess: resolve,
             onError: reject,
           });
         });
 
         toast.promise(promise, {
-          loading: "Deleting department...",
-          success: "Department deleted successfully ✅",
-          error: "Failed to delete department ❌",
+          loading: "Deleting paper...",
+          success: "Paper deleted successfully ✅",
+          error: "Failed to delete paper ❌",
         });
 
         await promise;
@@ -86,16 +96,16 @@ export default function DepartmentsIndex({ departments, parents, employees, filt
     });
   };
 
-
   return (
-    <AppLayout>
-      <Head title="Departments" />
+    <AppLayout breadcrumbs={breadcrumbs()}>
+      <Head title="Scripts" />
 
-      <div className="p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold">Departments</h1>
+      <div className="p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold tracking-tight">Scripts</h1>
           <Button onClick={openAddModal}>
-            <Plus className="mr-1 h-4 w-4" /> Add Department
+            <Plus className="mr-2 h-4 w-4" />
+            Add Script
           </Button>
         </div>
 
@@ -105,28 +115,29 @@ export default function DepartmentsIndex({ departments, parents, employees, filt
             onEdit: openEditModal,
             onDelete: handleDelete,
           })}
-          data={departments.data}
-          links={departments.links}
-          total={departments.total}
-          pageSize={departments.per_page || 10}
-          currentRoute="/departments"
+          data={scripts.data}
+          links={scripts.links} 
+          total={scripts.total}
+          pageSize={scripts.per_page}
+          currentRoute="/scripts"
           filters={filters}
+          searchPlaceholder="Search scripts..."
         />
       </div>
 
-      {/* Dynamic Form Modal */}
-      <DepartmentForm
-        initialData={editingDept || undefined}
-        parents={parents}
-        employees={employees}
+      {/* Add/Edit Form Modal */}
+      <ScriptForm
+        initialData={editingScript || undefined}
+        papers={papers}
         open={modalOpen}
         onOpenChange={setModalOpen}
       />
 
-      <DepartmentShowModal
+      {/* View Details Modal */}
+      <ScriptShowModal
         open={showModalOpen}
         onClose={() => setShowModalOpen(false)}
-        department={selectedDepartment}
+        script={selectedScript}
       />
     </AppLayout>
   );

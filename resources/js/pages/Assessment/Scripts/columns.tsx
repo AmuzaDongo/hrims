@@ -1,6 +1,6 @@
-import { Link } from "@inertiajs/react"
 import type { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal } from "lucide-react"
+import { CheckCircle2, Inbox, MoreHorizontal, ShieldCheck, Truck } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -11,25 +11,26 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import subDepartments from "@/wayfinder/routes/sub-departments"
 
-interface Department {
+interface Script {
   id: string;
-  name: string;
-  code: string; // keep null here
-  description: string | null;
-  parent?: { id: string; name: string };
-  head?: { id: string; first_name: string; last_name: string };
-  is_active: boolean;
+  papers: {
+    id: string;
+    name: string;
+    code: string;
+  }[];
+  center_origin: string;
+  current_location: string;
+  status: string;
 }
 
 interface ColumnActions {
-  onView: (department: Department) => void;
-  onEdit: (department: Department) => void;
+  onView: (script: Script) => void;
+  onEdit: (script: Script) => void;
   onDelete: (id: string) => void;
 }
 
-export const columns = (actions: ColumnActions): ColumnDef<Department>[] => [
+export const columns = (actions: ColumnActions): ColumnDef<Script>[] => [
   {
     id: "select",
     header: ({ table }) => (
@@ -53,36 +54,68 @@ export const columns = (actions: ColumnActions): ColumnDef<Department>[] => [
     enableHiding: false,
   },
 
-  { accessorKey: "name", header: "Name" },
-  { accessorKey: "code", header: "Code" },
-  {
-    id: "parent",
-    header: "Parent Department",
-    cell: ({ row }) => row.original.parent?.name || "—",
-  },
-  {
-    id: "head",
-    header: "Head",
-    cell: ({ row }) =>
-      row.original.head
-        ? `${row.original.head.first_name} ${row.original.head.last_name}`
-        : "—",
-  },
+  { accessorKey: "paper.code", header: "Paper Code" },
+  { accessorKey: "paper.name", header: "Paper Name" },
+  { accessorKey: "center_origin", header: "Center Origin" },
+  { accessorKey: "current_location", header: "Current Location" },
   {
     id: "status",
     header: "Status",
-    cell: ({ row }) => (
-      <span className={row.original.is_active ? "text-green-600" : "text-red-600"}>
-        {row.original.is_active ? "Active" : "Inactive"}
-      </span>
-    ),
+    cell: ({ row }) => {
+      const status = (row.original.status || "draft").toLowerCase();
+
+      const configs: Record<
+        string,
+        {
+          label: string;
+          color: string;
+          icon: React.ComponentType<{ className?: string }>;
+        }
+      > = {
+        received: {
+          label: "Received",
+          color: "text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/30",
+          icon: Inbox,
+        },
+
+        allocated: {
+          label: "In Transit",
+          color: "text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30",
+          icon: Truck,
+        },
+
+        marked: {
+          label: "Marked",
+          color: "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30",
+          icon: CheckCircle2,
+        },
+
+        checked: {
+          label: "Checked",
+          color: "text-violet-600 dark:text-violet-400 bg-violet-50 dark:bg-violet-900/30",
+          icon: ShieldCheck,
+        },
+      };
+
+      const config = configs[status] || configs.draft;
+
+      return (
+        <Badge 
+          variant="secondary"
+          className={`capitalize border-${config.color}-300 bg-${config.color}-100 text-${config.color}-700 flex items-center gap-1.5`}
+        >
+          <config.icon className="h-3 w-3" />
+          {config.label}
+        </Badge>
+      );
+    },
   },
 
   {
     id: "actions",
     header: () => <span className="sr-only">Actions</span>,
     cell: ({ row }) => {
-      const department = row.original
+      const script = row.original
 
       return (
         <DropdownMenu>
@@ -95,12 +128,9 @@ export const columns = (actions: ColumnActions): ColumnDef<Department>[] => [
           <DropdownMenuContent align="end">
             <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={() => actions.onView(department)}>View details</DropdownMenuItem>
-            <DropdownMenuItem asChild>
-              <Link href={subDepartments.index()}>Sub Department</Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => actions.onEdit(department)}>Edit</DropdownMenuItem>
-            <DropdownMenuItem  onClick={() => actions.onDelete(department.id)} className="text-destructive">
+            <DropdownMenuItem onClick={() => actions.onView(script)}>View details</DropdownMenuItem>
+            <DropdownMenuItem onClick={() => actions.onEdit(script)}>Edit</DropdownMenuItem>
+            <DropdownMenuItem  onClick={() => actions.onDelete(script.id)} className="text-destructive">
               Delete
             </DropdownMenuItem>
           </DropdownMenuContent>

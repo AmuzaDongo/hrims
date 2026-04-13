@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Assessment\Paper;
+namespace App\Http\Requests\Assessment\Script;
 
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -17,7 +17,7 @@ class UpdateScriptRequest extends FormRequest
             'paper_id' => 'required|uuid|exists:papers,id',
             'center_origin' => 'required|string|max:255',
             'barcode' => 'nullable|string|max:255',
-            'status' => 'required|string|in:pending,processing,completed',
+            'status' => 'required|string|in:received,allocated,marked,checked',
             'current_location' => 'required|string|max:255'
         ];
     }

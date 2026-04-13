@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Assessment\Script\StoreScriptRequest;
 use App\Http\Requests\Assessment\Script\UpdateScriptRequest;
 use App\Models\Assessment\Script;
+use App\Models\Assessment\Paper;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -15,7 +16,7 @@ class ScriptController extends Controller
     public function index(Request $request): Response
     {
         $query = Script::query()
-            ->with(['paper:id,name'])
+            ->with(['paper:id,name,code'])
             ->when($request->search, function ($q, $search) {
                 $q->where(function ($q) use ($search) {
                     $q->where('center_origin', 'like', "%{$search}%")
@@ -26,13 +27,15 @@ class ScriptController extends Controller
             ->when($request->status, fn($q, $status) => $q->where('status', $status))
             ->when($request->type, fn($q, $type) => $q->where('type', $type));
 
-        $papers = $query
+        $scripts = $query
             ->orderBy('created_at', 'desc') 
-            ->paginate($request->get('per_page', 15))
+            ->paginate($request->get('per_page', 10))
             ->withQueryString();
 
         return Inertia::render('Assessment/Scripts/Index', [
-            'scripts' => $papers,
+            'scripts' => $scripts,
+            'papers' => Paper::orderBy('name')
+                ->get(['id', 'name', 'code']),
             'filters' => $request->only(['search', 'status', 'type', 'per_page']),
         ]);
     }
@@ -41,7 +44,7 @@ class ScriptController extends Controller
     {
 
         return Inertia::render('Assessment/Scripts/Create', [
-            'scripts' => $papers,
+            'scripts' => $scripts,
         ]);
     }
 
@@ -69,8 +72,15 @@ class ScriptController extends Controller
 
     public function edit(Script $script): Response
     {
+        $parents = Script::where('id', '!=', $script->id)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        $papers = Paper::orderBy('name')->get(['id', 'name', 'code']);
+
         return Inertia::render('Assessment/Scripts/Edit', [
             'script'  => $script->load(['paper:id,name']),
+            'papers'  => $papers,
         ]);
     }
 

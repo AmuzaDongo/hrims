@@ -15,6 +15,7 @@ import {
 import { dashboard } from '@/routes';
 import activities from '@/routes/activities';
 import assessmentCategories from '@/routes/assessment-categories';
+import assessmentSeries from '@/routes/assessment-series';
 import departments from '@/routes/departments';
 import markingCenters from '@/routes/marking-centers';
 import papers from '@/routes/papers';
@@ -49,6 +50,11 @@ const mainNavItems: NavItem[] = [
         title: 'Positions',
         href: positions.index(),
         icon: Building2,
+    },
+    {
+        title: 'Assessment Series',
+        href: assessmentSeries.index(),
+        icon: Train,
     },
     {
         title: 'Assessment Categories',

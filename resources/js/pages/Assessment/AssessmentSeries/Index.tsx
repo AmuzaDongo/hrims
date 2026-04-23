@@ -5,6 +5,7 @@ import { Plus } from 'lucide-react';
 import { useState } from "react";
 import { toast } from 'sonner';
 import { AssessmentSeriesForm } from '@/components/assessment_series/AssessmentSeriesForm';
+import AssessmentSeriesShowModal from '@/components/assessment_series/AssessmentSeriesShowModal';
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/components/ui/confirm-provider";
 import { DataTable } from "@/components/ui/data-table";
@@ -13,7 +14,6 @@ import { dashboard } from '@/routes';
 import assessmentSeries, { destroy } from '@/routes/assessment-series';
 import type { BreadcrumbItem } from "@/types";
 import { columns } from './columns';
-import AssessmentSeriesShowModal from '@/components/assessment_series/AssessmentSeriesShowModal';
 
 interface AssessmentSeries {
   id: string;

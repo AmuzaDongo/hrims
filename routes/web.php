@@ -14,6 +14,7 @@ use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\EmployeeProfileController;
 use App\Http\Controllers\ActivityParticipantController;
 use App\Http\Controllers\RolePermissionController;
+use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -23,6 +24,7 @@ Route::get('/', function () {
 })->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::resource('users', UserController::class);
     Route::resource('departments', DepartmentController::class);
     Route::resource('marking-centers', MarkingCenterController::class);
     Route::resource('papers', PaperController::class);

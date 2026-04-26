@@ -19,8 +19,10 @@ import assessmentSeries from '@/routes/assessment-series';
 import departments from '@/routes/departments';
 import markingCenters from '@/routes/marking-centers';
 import papers from '@/routes/papers';
+import rolesPermissions from '@/routes/roles-permissions';
 import scriptMovements from '@/routes/script-movements';
 import scripts from '@/routes/scripts';
+import users from '@/routes/users';
 import type { NavItem } from '@/types';
 import employees from '@/wayfinder/routes/employees';
 import positions from '@/wayfinder/routes/positions';
@@ -97,6 +99,16 @@ const mainNavItems: NavItem[] = [
         href: positions.index(),
         icon: School,
     },
+    {
+        title: 'Users',
+        href: users.index(),
+        icon: Users,
+    },
+    {
+        title: 'Roles & Permissions',
+        href: rolesPermissions.index(),
+        icon: Flag,
+    }
 ];
 
 const footerNavItems: NavItem[] = [

@@ -2,119 +2,195 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Settings\RolesPermissions\StoreRoleRequest;
+use App\Http\Requests\Settings\RolesPermissions\UpdateRoleRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Illuminate\Http\RedirectResponse;
 use Inertia\Response;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use App\Models\HR\MarkingCenter;
 
 class RolePermissionController extends Controller
 {
-    /**
-     * Show Role & Permission Management Page
-     */
-    public function index(): Response
-    {
-        $users = User::with('marking_centers')->get();
-        $marking_centers = MarkingCenter::all();
-        $roles = Role::all();
-        $permissions = Permission::all();
 
+    public function index(Request $request): Response
+    {
+        $query = Role::query()
+            ->with(['permissions:id,name'])
+            ->when($request->search, function ($q, $search) {
+                $q->where(function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('permissions.name', 'like', "%{$search}%");
+                });
+            })
+            ->when($request->status, fn($q, $status) => $q->where('status', $status))
+            ->when($request->type, fn($q, $type) => $q->where('type', $type));
+
+        $roles = $query
+            ->orderBy('created_at', 'desc') 
+            ->paginate($request->get('per_page', 10))
+            ->withQueryString();
+        $permissions = Permission::select('id', 'name')->get();
         return Inertia::render('settings/RolePermission/Index', [
-            'users' => $users,
-            'marking_centers' => $marking_centers,
             'roles' => $roles,
             'permissions' => $permissions,
+            'filters' => $request->only(['search', 'status', 'type', 'per_page']),
         ]);
     }
 
+    public function store(StoreRoleRequest $request): RedirectResponse
+    {
+        $validated = $request->validated();
+
+        Role::create($validated);
+
+        return redirect()->route('roles-permissions.index')
+            ->with('success', 'Role created successfully.');
+    }
+
+    public function show(Role $role): Response
+    {
+         $role->load(['permissions', 'users']);
+
+        return Inertia::render('HR/Roles/Show', [
+            'role' => $role,
+        ]);
+    }
+    
+    public function update(UpdateRoleRequest $request, $id): RedirectResponse
+    {
+        $role = Role::findOrFail($id);
+
+        $role->update($request->validated());
+
+        return redirect()->route('roles-permissions.index')
+            ->with('success', 'Role updated successfully.');
+    }
+    
+    public function destroy(Role $role): RedirectResponse
+    {
+        $role->delete();
+
+        return redirect()->route('roles-permissions.index')
+            ->with('success', 'Role deleted successfully.');
+    }
+
     /**
-     * Assign Role to User in a Specific Center
+     * Assign Role to User
      */
     public function assignRole(Request $request)
     {
         $request->validate([
-            'user_id'    => 'required|exists:users,id',
-            'center_id'  => 'required|exists:centers,id',
-            'role'       => 'required|string|max:100',
+            'user_id' => 'required|exists:users,id',
+            'role'    => 'required|string|exists:roles,name',
         ]);
 
         $user = User::findOrFail($request->user_id);
-        $marking_center = MarkingCenter::findOrFail($request->center_id);
 
-        // Prevent duplicate role in same center
-        $exists = DB::table('center_user')
-            ->where('user_id', $user->id)
-            ->where('marking_center_id', $marking_center->id)
-            ->where('role', $request->role)
-            ->exists();
-
-        if ($exists) {
-            return back()->with('error', 'User already has this role in the center.');
+        if ($user->hasRole($request->role)) {
+            return back()->with('error', 'User already has this role.');
         }
 
-        DB::table('center_user')->insert([
-            'user_id'    => $user->id,
-            'center_id'  => $center->id,
-            'role'       => $request->role,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
+        $user->assignRole($request->role);
 
-        return back()->with('success', "Role '{$request->role}' assigned to user in {$center->name}.");
+        return back()->with('success', "Role '{$request->role}' assigned successfully.");
     }
 
     /**
-     * Remove Role from User in a Center
+     * Remove Role from User
      */
     public function removeRole(Request $request)
     {
         $request->validate([
-            'user_id'   => 'required|exists:users,id',
-            'center_id' => 'required|exists:centers,id',
-            'role'      => 'required|string',
+            'user_id' => 'required|exists:users,id',
+            'role'    => 'required|string|exists:roles,name',
         ]);
 
-        $deleted = DB::table('center_user')
-            ->where('user_id', $request->user_id)
-            ->where('center_id', $request->center_id)
-            ->where('role', $request->role)
-            ->delete();
+        $user = User::findOrFail($request->user_id);
 
-        if ($deleted) {
-            return back()->with('success', 'Role removed successfully.');
+        if (!$user->hasRole($request->role)) {
+            return back()->with('error', 'User does not have this role.');
         }
 
-        return back()->with('error', 'Role not found.');
+        $user->removeRole($request->role);
+
+        return back()->with('success', 'Role removed successfully.');
     }
 
     /**
-     * Assign Permission to a Role (Global)
+     * Assign Permission to Role
      */
+    // public function assignPermissionToRole(Request $request)
+    // {
+    //     $request->validate([
+    //         'role_id'       => 'required|exists:roles,id',
+    //         'permission_id' => 'required|exists:permissions,id',
+    //     ]);
+
+    //     $role = Role::findOrFail($request->role_id);
+    //     $permission = Permission::findOrFail($request->permission_id);
+
+    //     if ($role->hasPermissionTo($permission->name)) {
+    //         return back()->with('error', 'Permission already assigned.');
+    //     }
+
+    //     $role->givePermissionTo($permission->name);
+
+    //     return back()->with('success', 'Permission assigned successfully.');
+    // }
+
     public function assignPermissionToRole(Request $request)
     {
         $request->validate([
-            'role_id'       => 'required|exists:roles,id',
-            'permission_id' => 'required|exists:permissions,id',
+            'role_id' => 'required|exists:roles,id',
+            'permission_id' => 'nullable|exists:permissions,id',
+            'permissions' => 'nullable|array',
+            'permissions.*' => 'exists:permissions,id',
         ]);
 
         $role = Role::findOrFail($request->role_id);
-        $permission = Permission::findOrFail($request->permission_id);
 
-        if ($role->hasPermissionTo($permission->name)) {
-            return back()->with('error', 'Permission already assigned to this role.');
+        // CASE 1: single permission
+        if ($request->permission_id) {
+            $permission = Permission::findOrFail($request->permission_id);
+
+            if ($role->hasPermissionTo($permission->name)) {
+                return back()->with('error', 'Permission already assigned.');
+            }
+
+            $role->givePermissionTo($permission->name);
         }
 
-        $role->givePermissionTo($permission->name);
+        // CASE 2: bulk permissions
+        if ($request->permissions) {
+            $permissions = Permission::whereIn('id', $request->permissions)->pluck('name');
 
-        return back()->with('success', "Permission '{$permission->name}' assigned to role '{$role->name}'.");
+            $role->givePermissionTo($permissions);
+        }
+
+        return back()->with('success', 'Permission(s) assigned successfully.');
+    }
+
+    public function syncPermissions(Request $request)
+    {
+        $request->validate([
+            'role_id' => 'required|exists:roles,id',
+            'permissions' => 'array',
+            'permissions.*' => 'exists:permissions,id',
+        ]);
+
+        $role = Role::findOrFail($request->role_id);
+
+        // Sync replaces all permissions cleanly
+        $role->syncPermissions($request->permissions ?? []);
+
+        return back()->with('success', 'Permissions updated successfully');
     }
 
     /**
-     * Revoke Permission from a Role
+     * Revoke Permission from Role
      */
     public function revokePermissionFromRole(Request $request)
     {
@@ -128,6 +204,6 @@ class RolePermissionController extends Controller
 
         $role->revokePermissionTo($permission->name);
 
-        return back()->with('success', "Permission revoked successfully.");
+        return back()->with('success', 'Permission revoked successfully.');
     }
 }

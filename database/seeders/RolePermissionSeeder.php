@@ -29,10 +29,6 @@ class RolePermissionSeeder extends Seeder
             'assets.view', 'assets.create', 'assets.edit', 'assets.delete', 'assets.assign',
             'inventory.view', 'inventory.create', 'inventory.edit', 'inventory.delete',
 
-            // Marking Centers
-            'marking_centers.view', 'marking_centers.create', 'marking_centers.edit', 'marking_centers.delete',
-            'marking_centers.manage_staff',
-
             // General
             'reports.view', 'reports.generate',
             'audit_logs.view',
@@ -49,12 +45,19 @@ class RolePermissionSeeder extends Seeder
             'super.admin',
             'system.admin',
             'hr.manager',
+            'hr.director',
+            'hr.specialist',
+            'hr.recruiter',
+            'hr.senior_officer',
             'hr.officer',
-            'assessment.chief_assessor',
-            'assessment.assessor',
-            'assessment.supervisor',
-            'marking_center.admin',
-            'marking_center.deputy_admin',
+            'hr.assistant',
+            'hr.intern',
+            'hr.staff',
+            'hr.coordinator',
+            'hr.director',
+            'hr.supervisor',
+            'hr.analyst',
+            'hr.support',
             'assets.manager',
             'assets.officer',
             'inventory.manager',
@@ -75,12 +78,6 @@ class RolePermissionSeeder extends Seeder
             'departments.view', 'departments.create', 'departments.edit',
             'positions.view', 'positions.create', 'positions.edit',
             'reports.view', 'reports.generate',
-        ]);
-
-        $assessmentChief = Role::findByName('assessment.chief_assessor');
-        $assessmentChief->givePermissionTo([
-            'scripts.view', 'scripts.mark', 'scripts.review', 'scripts.approve', 'scripts.recheck',
-            'assessments.view', 'assessments.create', 'assessments.edit',
         ]);
     }
 }

@@ -48,22 +48,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ]);
     });
 
-    Route::get('/roles-permissions', [RolePermissionController::class, 'index'])
-         ->name('roles-permissions.index');
+    Route::resource('roles-permissions', RolePermissionController::class);
 
-    // Role Assignment per Center
-    Route::post('/assign-role', [RolePermissionController::class, 'assignRole'])
-         ->name('assign-role');
+    Route::post(
+        'roles-permissions/sync',
+        [RolePermissionController::class, 'syncPermissions']
+    )->name('roles-permissions.sync');
 
-    Route::delete('/remove-role', [RolePermissionController::class, 'removeRole'])
-         ->name('remove-role');
+    Route::prefix('roles-permissions')->name('roles-permissions.')->group(function () {
 
-    // Permission Management (Global)
-    Route::post('/assign-permission', [RolePermissionController::class, 'assignPermissionToRole'])
-         ->name('assign-permission');
+        Route::post('/assign-permission', [RolePermissionController::class, 'assignPermissionToRole'])
+            ->name('assign-permission');
 
-    Route::delete('/revoke-permission', [RolePermissionController::class, 'revokePermissionFromRole'])
-         ->name('revoke-permission');
+        Route::delete('/revoke-permission', [RolePermissionController::class, 'revokePermissionFromRole'])
+            ->name('revoke-permission');
+    });
 });
 
 Route::get('dashboard', function () {
